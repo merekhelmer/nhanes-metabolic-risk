@@ -35,12 +35,19 @@ matching_file = unlist(matching_file, use.names = FALSE)
 data = map(matching_file, read_xpt)
 names(data) = basename(matching_file)
 
+#print(data)
+#Finds unique SEQNs
 new_seqn_data = data %>%
   map(~ pull(.x, SEQN)) %>%
   unlist() %>%
   unique()
 
+#filter to work with just participants that have POP data
 filtered_demoData = demoData %>% filter(SEQN %in% new_seqn_data)
 
+#TODO run filtered data on the diet data to get what we are working with
+final_demoData = filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
+
 View(filtered_demoData)
+View(final_demoData)
 
