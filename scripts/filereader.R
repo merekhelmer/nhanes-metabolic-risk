@@ -5,7 +5,8 @@ library(stringr)
 library(purrr)
 
 DI_data1 = read_xpt("Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt")
-
+demoData = read_xpt("Data/DemographicData/DEMO_E.xpt")
+#View(demoData)
 partIDs = DI_data1$SEQN %>% unique()
 
 #print(partIDs)
@@ -34,9 +35,12 @@ matching_file = unlist(matching_file, use.names = FALSE)
 data = map(matching_file, read_xpt)
 names(data) = basename(matching_file)
 
-print(data)
+new_seqn_data = data %>%
+  map(~ pull(.x, SEQN)) %>%
+  unlist() %>%
+  unique()
 
-for (tib in data){
-  
-}
+filtered_demoData = demoData %>% filter(SEQN %in% new_seqn_data)
+
+View(filtered_demoData)
 
