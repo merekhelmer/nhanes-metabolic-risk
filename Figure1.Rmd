@@ -1,0 +1,178 @@
+## Figure 1 Tables
+
+``` yaml
+---
+title: "NHANES Data Exploration"
+output: html_document
+---
+```
+### Filtering Demographic Data
+
+
+```{r setup, include=FALSE}
+# Load DT globally and set chunk options
+library(DT)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load-and-prepare-data}
+# Load libraries
+library(tidyverse)
+library(haven)
+library(stringr)
+library(purrr)
+library(DT)
+
+# read in the data (update the file paths if needed)
+DI_data1 <- read_xpt("Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt")
+demoData <- read_xpt("Data/DemographicData/DEMO_E.xpt")
+
+partIDs <- unique(DI_data1$SEQN)
+
+POP_files <- "Data/LaboratoryData"
+POP_subdir <- list.dirs(POP_files, full.names = TRUE)
+POP_subdir <- POP_subdir[-1] #removes parent directory
+
+matching_file <- list()
+
+for (subdir in POP_subdir) {
+  file_list <- list.files(subdir, full.names = TRUE, pattern = "\\.xpt$")
+  year_files <- file_list[str_detect(file_list, "2007")]
+  
+  if (length(year_files) > 0){
+    matching_file[[subdir]] <- year_files
+  }
+}
+
+matching_file <- unlist(matching_file, use.names = FALSE)
+
+# read each file into a list
+data <- map(matching_file, read_xpt)
+names(data) <- basename(matching_file)
+
+# unique SEQNs from all laboratory files
+new_seqn_data <- data %>%
+  map(~ pull(.x, SEQN)) %>%
+  unlist() %>%
+  unique()
+
+# include only participants with laboratory (POP) data
+filtered_demoData <- demoData %>% filter(SEQN %in% new_seqn_data)
+
+final_demoData <- filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
+
+
+```
+
+### Creating Demographic Tables
+```{r demographic-summary, echo=TRUE}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# -------RIAGENDER-------
+
+sex_summary <- final_demoData %>%
+  mutate(Sex = case_when(
+    RIAGENDR == 1 ~ "Male",
+    RIAGENDR == 2 ~ "Female",
+    TRUE          ~ "Other / Unknown"
+  )) %>%
+  count(Sex) %>%
+  mutate(Percent = round(n / sum(n) * 100, 2))
+
+sex_block <- bind_rows(
+  tibble(Sex = "Sex", n = NA, Percent = NA),
+  sex_summary
+)
+
+# ------RIDRETH1--------
+
+race_summary <- final_demoData %>%
+  mutate(RaceEth = case_when(
+    RIDRETH1 == 1 ~ "Mexican American",
+    RIDRETH1 == 2 ~ "Other Hispanic",
+    RIDRETH1 == 3 ~ "Non-Hispanic White",
+    RIDRETH1 == 4 ~ "Non-Hispanic Black",
+    RIDRETH1 == 5 ~ "Other Race/Multiracial",
+    TRUE          ~ "Unknown"
+  )) %>%
+  count(RaceEth) %>%
+  mutate(Percent = round(n / sum(n) * 100, 2))
+
+race_block <- bind_rows(
+  tibble(RaceEth = "Race/Ethnicity", n = NA, Percent = NA),
+  race_summary
+)
+
+# -------INDFMIN2---------
+
+income_summary <- final_demoData %>%
+  mutate(Income = case_when(
+    INDFMIN2 == 1  ~ "$ 0 to $4,999",
+    INDFMIN2 == 2  ~ "$5,000 to $9,999",
+    INDFMIN2 == 3  ~ "$10,000 to $14,999",
+    INDFMIN2 == 4  ~ "$15,000 to $19,999",
+    INDFMIN2 == 5  ~ "$20,000 to $24,999",
+    INDFMIN2 == 6  ~ "$25,000 to $34,999",
+    INDFMIN2 == 7  ~ "$35,000 to $44,999",
+    INDFMIN2 == 8  ~ "$45,000 to $54,999",
+    INDFMIN2 == 9  ~ "$55,000 to $64,999",
+    INDFMIN2 == 10 ~ "$65,000 to $74,999",
+    INDFMIN2 == 12 ~ "Over $20,000",
+    INDFMIN2 == 13 ~ "Under $20,000",
+    INDFMIN2 == 14 ~ "$75,000 to $99,999",
+    INDFMIN2 == 15 ~ "$100,000 and Over",
+    INDFMIN2 == 77 ~ "Refused",
+    INDFMIN2 == 99 ~ "Don't know",
+    TRUE           ~ "Missing"
+  )) %>%
+  count(Income) %>%
+  mutate(Percent = round(n / sum(n) * 100, 2))
+
+income_block <- bind_rows(
+  tibble(Income = "Household Income", n = NA, Percent = NA),
+  income_summary
+)
+
+# ------Combine----------
+
+sex_block <- sex_block %>%
+  rename(Table = Sex, N = n, `%` = Percent) %>%
+  select(Table, N, `%`)
+
+race_block <- race_block %>%
+  rename(Table = RaceEth, N = n, `%` = Percent) %>%
+  select(Table, N, `%`)
+
+income_block <- income_block %>%
+  rename(Table = Income, N = n, `%` = Percent) %>%
+  select(Table, N, `%`)
+
+final_summary <- bind_rows(sex_block, race_block, income_block) %>%
+  # replace NA values in N with blanks
+  mutate(N = if_else(is.na(N), "", as.character(N)),
+         `%` = if_else(is.na(`%`), "", as.character(`%`)))
+
+# header row indices (first row of each block)
+n_sex  <- nrow(sex_block)
+n_race <- nrow(race_block)
+header_rows <- c(1, n_sex + 1, n_sex + n_race + 1)
+
+
+kbl <- kable(
+  final_summary,
+  col.names = c("Table", "N", "%"),
+  caption = "Demographic Summary"
+) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = TRUE
+  )
+
+for (row in header_rows) {
+  kbl <- row_spec(kbl, row, bold = TRUE)
+}
+
+kbl
+```

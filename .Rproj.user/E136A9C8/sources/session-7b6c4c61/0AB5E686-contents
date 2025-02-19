@@ -1,0 +1,13 @@
+---
+title: "POP stuff"
+author: "griffin"
+date: "2025-02-11"
+output: html_document
+---
+Hello world
+```
+```{r}
+#Hello world
+myData <- broFlameR07
+```
+
