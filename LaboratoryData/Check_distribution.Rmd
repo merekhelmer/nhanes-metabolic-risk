@@ -25,10 +25,6 @@ plot_distribution = function(filename, POP, year) {
         POPData = mutate(POPData, Total = Total + POPData[[col]])
         units = sub(".*\\((.*)\\).*", "\\1", label)
       }
-    }
-    # if (all(!sapply(donotinclude, function(sub) grepl(sub, label)))) {#this should check for comment codes
-    #   POPData = mutate(POPData, Total = Total + POPData[[col]])
-    # }
   }
   print(POPData%>%filter(Total > 25))
   make_plot(na.omit(POPData$Total),POP, year, units)
@@ -85,7 +81,6 @@ testFile = "~/nhanes-metabolic-risk/LaboratoryData/Cadmium-Lead-and-manganese/PB
 
 plot_distribution(testFile, "Cadmium-Lead-and_Manganese", 2007)
 
-#there are no flame retardants for 2007, and nothing in parathyroid hormone
 check_distribution_by_year(2007,10)
 ```
 
