@@ -1,0 +1,91 @@
+```{r}
+library(tidyverse)
+library(haven)
+
+make_plot = function(col, POP, year, units) {
+  data = as.data.frame.integer(col)
+  plot = ggplot(data, aes(x=col)) + 
+    geom_histogram(stat = 'bin',bins = 20) + 
+    labs(title = paste0(POP, ' distribution in ', as.character(year)),x = paste0('Level'," ",units), y = 'Number of Participants') +
+    scale_x_continuous(limits = c(-1, max(col))) + 
+    scale_y_continuous(expand = c(0, 0)) +
+    theme_bw()
+  print(plot)
+}
+
+plot_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+  specific = colnames(POPData)[-1]
+  POPData = mutate(POPData, Total = 0)
+  donotinclude = c('comment','code','cmt ',' cd','mol/','weights')
+  for (col in specific) {
+    label = attr(POPData[[col]],"label")
+    if (grepl("\\(",label)) { 
+      if (all(!sapply(donotinclude, function(sub) grepl(sub, label)))) {
+        POPData = mutate(POPData, Total = Total + POPData[[col]])
+        units = sub(".*\\((.*)\\).*", "\\1", label)
+      }
+    }
+    # if (all(!sapply(donotinclude, function(sub) grepl(sub, label)))) {#this should check for comment codes
+    #   POPData = mutate(POPData, Total = Total + POPData[[col]])
+    # }
+  }
+  print(POPData%>%filter(Total > 25))
+  make_plot(na.omit(POPData$Total),POP, year, units)
+}
+
+plot_specific_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+  specific = colnames(POPData)[-1]
+  for (col in specific) {
+    make_plot(na.omit(POPData[[col]]), col, year)#this is what was here before
+  }
+}
+
+check_distribution_by_year = function(year, input) {
+  # input = readline(prompt: "Please enter the POP you would like to see distributions for. The options are
+  #                    1: Cadmium, lead, and manganese
+  #                    2: Environmental phenols
+  #                    3: Flame retardants
+  #                    4: Metals
+  #                    5: Organophosphate insecticides
+  #                    6: Parathyroid hormone
+  #                    7: Pesticides
+  #                    8: Polychlorinated biphenyls
+  #                    9: Polyfluoroalkyl chemicals
+  #                    10: Pyrethroids, herbicides, and OP metabolites
+  #                    11: Standard biochemistry profile
+  #                    12: Thyroid Profile
+  #                    Please enter the number of the POP you would like to view: ")
+    #POPs = c("Cadmium-Lead-and_Manganese","environmental-phenols","flame-retardants","metals", "organophosphate-insecticides","parathyroid-hormone","pesticides","polychlorinated-biphenyls", "polyfluoroalkyl-chemicals","pyrethroids-herbicides-and-OP-metabolites","standard-biochemistry-profile","thyroid-profile")
+  POP = switch(input, 
+                 "1" = "Cadmium-Lead-and-Manganese",
+                 "2" = "environmental-phenols",
+                 "3" = "flame-retardants",
+                 "4" = "metals",
+                 "5" = "organophosphate-insecticides",
+                 "6" = "parathyroid-hormone",
+                 "7" = "pesticides",
+                 "8" = "polychlorinated-biphenyls",
+                 "9" = "polyfluoroalkyl-chemicals",
+                 "10" = "pyrethroids-herbicides-and-OP-metabolites",
+                 "11" = "standard-biochemistry-profile",
+                 "12" = "thyroid-profile",
+                 'invalid')
+  filename = paste0('~/nhanes-metabolic-risk/LaboratoryData/', POP)
+  for (file in list.files(filename)) {
+    if (grepl(as.character(year), file)) {
+      filename = paste0(filename, "/", file)
+      plot_distribution(filename, POP, year)
+    }
+  }
+}
+
+testFile = "~/nhanes-metabolic-risk/LaboratoryData/Cadmium-Lead-and-manganese/PBCD_E_Cadmium_Lead_and_Total_Mercury_2007-2008.xpt"
+
+plot_distribution(testFile, "Cadmium-Lead-and_Manganese", 2007)
+
+#there are no flame retardants for 2007, and nothing in parathyroid hormone
+check_distribution_by_year(2007,10)
+```
+
