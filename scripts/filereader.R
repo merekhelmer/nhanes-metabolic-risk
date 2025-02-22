@@ -7,6 +7,11 @@ library(purrr)
 DI_data1 = read_xpt("Data/DietaryInterview/2017-2018/DR1IFF_Jdietary-interview-1-17-18.xpt")
 demoData = read_xpt("Data/DemographicData/DEMO_J.xpt")
 
+#TODO Code that takes every demographic data file and puts them all together
+demographicFiles = "Data/DemographicData"
+
+View(demographicFiles)
+
 partIDs = DI_data1$SEQN %>% unique()
 
 POP_files = "Data/LaboratoryData"
@@ -40,7 +45,19 @@ new_seqn_data = data %>%
 #filter to work with just participants that have POP data
 filtered_demoData = demoData %>% filter(SEQN %in% new_seqn_data)
 
-#TODO run filtered data on the diet data to get what we are working with
+#Filter out children
+adultData = filtered_demoData %>% filter(RIDAGEYR >= 18)
+childData = filtered_demoData %>% filter(RIDAGEYR < 18)
+
+#demo data with everyone
 final_demoData = filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
 
+#final_demoData filtered into adults and children
+finalAdultData = adultData %>% filter(SEQN %in% DI_data1$SEQN)
+finalChildData = childData %>% filter(SEQN %in% DI_data1$SEQN)
+
+View(final_demoData)
+View(DI_data1)
+View(finalChildData)
+View(finalAdultData)
 
