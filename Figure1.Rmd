@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 ## Figure 1 Tables
 
 ``` yaml
@@ -6,8 +11,10 @@ title: "NHANES Data Exploration"
 output: html_document
 ---
 ```
+
 ### Filtering Demographic Data
 
+#### Individuals included in all surveys
 
 ```{r setup, include=FALSE}
 # Load DT globally and set chunk options
@@ -64,13 +71,14 @@ final_demoData <- filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
 
 ```
 
-### Creating Demographic Tables
+### Demographic Data Analysis
+
 ```{r demographic-summary, echo=TRUE}
 library(dplyr)
 library(knitr)
 library(kableExtra)
 
-# -------RIAGENDER-------
+#----SEX-----
 
 sex_summary <- final_demoData %>%
   mutate(Sex = case_when(
@@ -79,14 +87,16 @@ sex_summary <- final_demoData %>%
     TRUE          ~ "Other / Unknown"
   )) %>%
   count(Sex) %>%
-  mutate(Percent = round(n / sum(n) * 100, 2))
+  mutate(percent = round(n / sum(n) * 100, 1), 
+    N_val = paste0(n, " (", percent, "%)")) %>%
+  select(Sex, N_val)
 
 sex_block <- bind_rows(
-  tibble(Sex = "Sex", n = NA, Percent = NA),
+  tibble(Sex = "Sex", N_val = NA_character_),
   sex_summary
-)
+) %>% rename(Table = Sex, N = N_val)
 
-# ------RIDRETH1--------
+# ----RACE/ETHNICITY----
 
 race_summary <- final_demoData %>%
   mutate(RaceEth = case_when(
@@ -98,78 +108,83 @@ race_summary <- final_demoData %>%
     TRUE          ~ "Unknown"
   )) %>%
   count(RaceEth) %>%
-  mutate(Percent = round(n / sum(n) * 100, 2))
+  mutate(percent = round(n / sum(n) * 100, 1),
+         N_val = paste0(n, " (", percent, "%)")) %>%
+  select(RaceEth, N_val)
 
 race_block <- bind_rows(
-  tibble(RaceEth = "Race/Ethnicity", n = NA, Percent = NA),
+  tibble(RaceEth = "Race/Ethnicity", N_val = NA_character_),
   race_summary
-)
+) %>% rename(Table = RaceEth, N = N_val)
 
-# -------INDFMIN2---------
+# ----HOUSEHOLD INCOME----
 
 income_summary <- final_demoData %>%
-  mutate(Income = case_when(
-    INDFMIN2 == 1  ~ "$ 0 to $4,999",
-    INDFMIN2 == 2  ~ "$5,000 to $9,999",
-    INDFMIN2 == 3  ~ "$10,000 to $14,999",
-    INDFMIN2 == 4  ~ "$15,000 to $19,999",
-    INDFMIN2 == 5  ~ "$20,000 to $24,999",
-    INDFMIN2 == 6  ~ "$25,000 to $34,999",
-    INDFMIN2 == 7  ~ "$35,000 to $44,999",
-    INDFMIN2 == 8  ~ "$45,000 to $54,999",
-    INDFMIN2 == 9  ~ "$55,000 to $64,999",
-    INDFMIN2 == 10 ~ "$65,000 to $74,999",
-    INDFMIN2 == 12 ~ "Over $20,000",
-    INDFMIN2 == 13 ~ "Under $20,000",
-    INDFMIN2 == 14 ~ "$75,000 to $99,999",
-    INDFMIN2 == 15 ~ "$100,000 and Over",
-    INDFMIN2 == 77 ~ "Refused",
-    INDFMIN2 == 99 ~ "Don't know",
-    TRUE           ~ "Missing"
+  filter(INDFMIN2 %in% c(1,2,3,4,5,6,7,8,9,10,14,15)) %>%
+  mutate(IncomeGroup = case_when(
+    INDFMIN2 %in% c(1,2,3,4) ~ "$ 0 - $20,000",
+    INDFMIN2 %in% c(5,6) ~ "$20,000 - $35,000",
+    INDFMIN2 %in% c(7,8,9,10) ~ "$35,000 to $75,000",
+    INDFMIN2 %in% c(14,15) ~ "$75,000+",
+    TRUE ~ NA_character_
   )) %>%
-  count(Income) %>%
-  mutate(Percent = round(n / sum(n) * 100, 2))
+  count(IncomeGroup) %>%
+  mutate(percent = round(n / sum(n) * 100, 1),
+         N_val = paste0(n, " (", percent, "%)")) %>%
+  select(IncomeGroup, N_val)
 
 income_block <- bind_rows(
-  tibble(Income = "Household Income", n = NA, Percent = NA),
+  tibble(IncomeGroup = "Household Income", N_val = NA_character_),
   income_summary
-)
+) %>% rename(Table = IncomeGroup, N = N_val)
 
-# ------Combine----------
+# ----FAMILY INCOME TO POVERTY RATIO----
+pir_summary <- final_demoData %>%
+  filter(!is.na(INDFMPIR)) %>%
+  mutate(INDFMPIR_group = cut(INDFMPIR,
+                              breaks = c(0, 1, 2, 3, 4, 5.01),
+                              labels = c("<1.0", "1.0 - 1.99", "2.0 - 2.99", "3.0 - 3.99", "4.0 - 5.0+"),
+                              right = FALSE)) %>%
+  count(INDFMPIR_group) %>%
+  mutate(percent = round(n / sum(n) * 100, 1),
+         N_val = paste0(n, " (", percent, "%)")) %>%
+  select(INDFMPIR_group, N_val)
 
-sex_block <- sex_block %>%
-  rename(Table = Sex, N = n, `%` = Percent) %>%
-  select(Table, N, `%`)
+pir_block <- bind_rows(
+  tibble(INDFMPIR_group = "Ratio of Family Income to Poverty", N_val = NA_character_),
+  pir_summary
+) %>% rename(Table = INDFMPIR_group, N = N_val)
 
-race_block <- race_block %>%
-  rename(Table = RaceEth, N = n, `%` = Percent) %>%
-  select(Table, N, `%`)
+# ----COMBINE-----
 
-income_block <- income_block %>%
-  rename(Table = Income, N = n, `%` = Percent) %>%
-  select(Table, N, `%`)
+final_summary <- bind_rows(
+  sex_block,
+  race_block,
+  income_block,
+  pir_block
+) %>%
+  select(Table, N) %>% # 2 columns
+  mutate(N = if_else(is.na(N), "", N)) #remove NA values in N with empty string
 
-final_summary <- bind_rows(sex_block, race_block, income_block) %>%
-  # replace NA values in N with blanks
-  mutate(N = if_else(is.na(N), "", as.character(N)),
-         `%` = if_else(is.na(`%`), "", as.character(`%`)))
-
-# header row indices (first row of each block)
-n_sex  <- nrow(sex_block)
+# determine header row indices
+n_sex <- nrow(sex_block)
 n_race <- nrow(race_block)
-header_rows <- c(1, n_sex + 1, n_sex + n_race + 1)
+n_income <- nrow(income_block)
+n_pir <- nrow(pir_block)
+header_rows <- c(1, n_sex + 1, n_sex + n_race + 1, n_sex + n_race + n_income + 1)
 
-
+# ----POLISHED TABLE----
 kbl <- kable(
   final_summary,
-  col.names = c("Table", "N", "%"),
+  col.names = c("Table", "N"),
   caption = "Demographic Summary"
 ) %>%
   kable_styling(
-    bootstrap_options = c("striped", "hover", "condensed"),
+    bootstrap_options = c("hover", "condensed"),
     full_width = TRUE
   )
 
+# bold header rows
 for (row in header_rows) {
   kbl <- row_spec(kbl, row, bold = TRUE)
 }
