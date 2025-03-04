@@ -1,0 +1,270 @@
+```{r}
+library(tidyverse)
+library(haven)
+
+make_plot = function(col, title, xaxis) {
+  data = as.data.frame.integer(col)
+  plot = ggplot(data, aes(x=col)) + 
+    geom_histogram(stat = 'bin',bins = 20,fill = "#6488EA") + 
+    labs(title = title,x = xaxis, y = 'Number of Participants') +
+    scale_x_log10()
+  print(max(col))
+  print(plot)
+}
+
+plot_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+  specific = colnames(POPData)[-1]
+  POPData = mutate(POPData, Total = 0)
+  donotinclude = c('comment','code','cmt ',' cd','mol/','weights')
+  for (col in specific) {
+    label = attr(POPData[[col]],"label")
+    if (grepl("\\(",label)) { 
+      if (all(!sapply(donotinclude, function(sub) grepl(sub, label)))) {
+        POPData = mutate(POPData, Total = Total + POPData[[col]])
+        units = sub(".*\\((.*)\\).*", "\\1", label)
+      }
+    }
+  }
+  #print(POPData%>%filter(Total > 25))
+  #print('plot_distribution is working')
+  make_plot(na.omit(POPData$Total),POP, year, units)
+}
+
+plot_specific_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+  specific = colnames(POPData)[-1]
+  for (col in specific) {
+    make_plot(na.omit(POPData[[col]]), col, year)#this is what was here before
+  }
+}
+
+check_distribution_by_year = function(year, input) {
+  POPs = c("Cadmium-Lead-and_Manganese","environmental-phenols","flame-retardants","metals", "organophosphate-insecticides","pesticides", "polyfluoroalkyl-chemicals","pyrethroids-herbicides-and-OP-metabolites")
+  # POP = switch(input, 
+  #                "1" = "Cadmium-Lead-and-Manganese",
+  #                "2" = "environmental-phenols",
+  #                "3" = "flame-retardants",
+  #                "4" = "metals",
+  #                "5" = "organophosphate-insecticides",
+  #                "6" = "parathyroid-hormone",#empty
+  #                "7" = "pesticides",
+  #                "8" = "polychlorinated-biphenyls",#empty
+  #                "9" = "polyfluoroalkyl-chemicals",
+  #                "10" = "pyrethroids-herbicides-and-OP-metabolites",
+  #                "11" = "standard-biochemistry-profile",
+  #                "12" = "thyroid-profile",
+  #                'invalid')
+  
+  # filename = paste0('~/nhanes-metabolic-risk/Data/LaboratoryData/', POP)
+  # for (file in list.files(filename)) {
+  #   if (grepl(as.character(year), file)) {
+  #     filename = paste0(filename, "/", file)
+  #     #print("check distribution by year is working")
+  #     plot_distribution(filename, POP, year)
+  #   }
+  # }
+  # Cadmium, Lead, and Manganese
+  year = as.character(year)
+  filename1 = '~/nhanes-metabolic-risk/Data/LaboratoryData/Cadmium-Lead-and-Manganese'
+  for (file in list.files(filename1)) {
+    if (grepl(as.character(year), file)) {
+      filename1 = paste0(filename1, "/", file)
+      #print("check distribution by year is working")
+      plot_lead_distribution(filename1, POP, year)
+    }
+  }
+  
+  #environmental phenols
+  filename2 = '~/nhanes-metabolic-risk/Data/LaboratoryData/environmental-phenols'
+  for (file in list.files(filename2)) {
+    if (grepl(as.character(year), file)) {
+      filename2 = paste0(filename2, "/", file)
+      #print("check distribution by year is working")
+      plot_phenols_distribution(filename2, POP, year)
+    }
+  }
+  
+  #flame retardants
+  filename3 = '~/nhanes-metabolic-risk/Data/LaboratoryData/flame-retardants'
+  for (file in list.files(filename3)) {
+    if (grepl(as.character(year), file)) {
+      filename3 = paste0(filename3, "/", file)
+      #print("check distribution by year is working")
+      plot_flamer_distribution(filename3, POP, year)
+    }
+  }
+  
+  #metals
+  filename4 = '~/nhanes-metabolic-risk/Data/LaboratoryData/metals'
+  for (file in list.files(filename4)) {
+    if (grepl(as.character(year), file)) {
+      filename4 = paste0(filename4, "/", file)
+      #print("check distribution by year is working")
+      plot_metals_distribution(filename4, POP, year)
+    }
+  }
+  
+  #insecticides
+  filename5 = '~/nhanes-metabolic-risk/Data/LaboratoryData/organophosphate-insecticides'
+  for (file in list.files(filename5)) {
+    if (grepl(as.character(year), file)) {
+      filename5 = paste0(filename5, "/", file)
+      #print("check distribution by year is working")
+      plot_insecticides_distribution(filename5, POP, year)
+    }
+  }
+  
+  #pesticides
+  filename6 = '~/nhanes-metabolic-risk/Data/LaboratoryData/pesticides'
+  for (file in list.files(filename6)) {
+    if (grepl(as.character(year), file)) {
+      tempfilename6 = paste0(filename6, "/", file)
+      #print("check distribution by year is working")
+      plot_pesticides_distribution(tempfilename6, POP, year)
+    }
+  }
+  
+  #polyfluoroalkyl chemicals
+  filename7 = '~/nhanes-metabolic-risk/Data/LaboratoryData/polyfluoroalkyl-chemicals'
+  for (file in list.files(filename7)) {
+    if (grepl(as.character(year), file)) {
+      filename7 = paste0(filename7, "/", file)
+      #print("check distribution by year is working")
+      plot_polychemicals_distribution(filename7, POP, year)
+    }
+  }
+  
+  #herbicides
+  filename8 = '~/nhanes-metabolic-risk/Data/LaboratoryData/pyrethroids-herbicides-and-OP-metabolites'
+  for (file in list.files(filename8)) {
+    if (grepl(as.character(year), file)) {
+      filename8 = paste0(filename8, "/", file)
+      #print("check distribution by year is working")
+      plot_herbicide_distribution(filename8, POP, year)
+    }
+  }
+}
+
+plot_lead_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ug/L)",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+      if (grepl("(ug/dL)",label)) { 
+          POPData = mutate(POPData, Total = Total + (POPData[[col]]/10))
+      }
+    }
+  title = paste0("Combined Cadmium, Lead, and Mercury distribution in ",year)
+  xaxis = "Level (log(ug/L))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+  #print(POPData)
+  #print(filter(POPData, Total == 272.772))
+}
+
+plot_phenols_distribution = function(filename, POP, year) {
+    POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ng/mL)",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+      if (grepl("(ng/ml)",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+    }
+  title = paste0("Combined distribution of environmental phenols in ",year)
+  xaxis = "Level (log(ng/mL))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+  print(filter(POPData, Total == 93162.88))
+}
+
+plot_flamer_distribution = function(filename, POP, year) {
+  print("flame retardants not implemented yet")
+}
+
+plot_metals_distribution = function(filename, POP, year){
+  POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ug/L)",label) & !grepl("comment",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+    }
+  title = paste0("Combined distribution of metals in ",year)
+  xaxis = "Level (log(ug/L))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+}
+
+plot_insecticides_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ug/L)",label) & !grepl("comment",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+    }
+  title = paste0("Combined distribution of insecticides in ",year)
+  xaxis = "Level (log(ug/L)"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+}
+
+plot_pesticides_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ug/L)",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+    }
+  title = paste0("Combined distribution of pesticides in ",year)
+  xaxis = "Level (log(ug/L))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+}
+
+plot_polychemicals_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+  specific = colnames(POPData)[-1]
+  POPData = mutate(POPData, Total = 0)
+  donotinclude = c('sequence','comment','weights')
+  for (col in specific) {
+    label = attr(POPData[[col]],"label") 
+    if (all(!sapply(donotinclude, function(sub) grepl(sub, label)))) {
+        POPData = mutate(POPData, Total = Total + POPData[[col]])
+    }
+  }
+  title = paste0("Combined distribution of polyfluoroalkyl chemicals in ",year)
+  xaxis = "Level (log(ug/L))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+}
+
+plot_herbicide_distribution = function(filename, POP, year) {
+  POPData = read_xpt(filename)
+    specific = colnames(POPData)[-1]
+    POPData = mutate(POPData, Total = 0)
+    for (col in specific) {
+      label = attr(POPData[[col]],"label")
+      if (grepl("(ug/L)",label)) { 
+          POPData = mutate(POPData, Total = Total + POPData[[col]])
+      }
+    }
+  title = paste0("Combined distribution of pyrethroids, herbicides, and OP metabolites in ",year)
+  xaxis = "Level (log(ug/L))"
+  make_plot(na.omit(POPData$Total),title, xaxis)
+}
+
+check_distribution_by_year(2007,1)
+```
+
