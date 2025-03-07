@@ -1,0 +1,165 @@
+---
+title: "Dietary Intake Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(DT)
+```
+
+### Data Processing
+
+```{r load-and-prepare-data}
+library(dplyr)
+library(tidyr)
+library(haven)
+library(ggplot2)
+
+#vector of file paths for all survey cycles
+files <- c(
+  "../Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt",
+  "../Data/DietaryInterview/2009-2010/DR1IFF_Fdietary-interview-1-09-10.xpt",
+  "../Data/DietaryInterview/2011-2012/DR1IFF_Gdietary-interview-1-11-12.xpt",
+  "../Data/DietaryInterview/2013-2014/DR1IFF_Hdietary-interview-1-13-14.xpt",
+  "../Data/DietaryInterview/2015-2016/DR1IFF_Idietary-interview-1-15-16.xpt",
+  "../Data/DietaryInterview/2017-2018/DR1IFF_Jdietary-interview-1-17-18.xpt"
+)
+
+#read and combine all files into one data set
+all_data <- bind_rows(lapply(files, read_xpt))
+
+#keep only records with DR1DRSTZ equal to 1 or 4
+data_filtered <- all_data %>%
+  filter(DR1DRSTZ %in% c(1, 4))
+
+#create food groups based on first digit of USDA food code
+data_filtered <- data_filtered %>%
+  mutate(FoodGroup = substr(as.character(DR1IFDCD), 1, 1))
+
+#sum grams consumed (DR1IGRMS) for each individual (SEQN) by food group
+aggregated_data <- data_filtered %>%
+  group_by(SEQN, FoodGroup) %>%
+  summarise(total_grams = sum(DR1IGRMS, na.rm = TRUE)) %>%
+  ungroup()
+
+```
+
+### Create New Dataset
+
+```{r create-dataset, echo=TRUE}
+
+#every individual has an entry for all 9 food groups (fill missing values with 0)
+unique_SEQNs <- unique(aggregated_data$SEQN)
+all_food_groups <- as.character(1:9)
+complete_data <- expand.grid(SEQN = unique_SEQNs, FoodGroup = all_food_groups, stringsAsFactors = FALSE) %>%
+  left_join(aggregated_data, by = c("SEQN", "FoodGroup"))
+
+complete_data <- complete_data %>%
+  mutate(zero_flag = (total_grams == 0))
+
+#filter out zero-gram records from the quantile calculation,
+non_zero <- complete_data %>%
+  filter(!zero_flag)
+
+non_zero <- non_zero %>%
+  group_by(FoodGroup) %>%
+  mutate(
+    low_cutoff  = quantile(total_grams, probs = 1/3, na.rm = TRUE),
+    high_cutoff = quantile(total_grams, probs = 2/3, na.rm = TRUE),
+    intake_level = case_when(
+      total_grams <= low_cutoff       ~ "Low",
+      total_grams <= high_cutoff      ~ "Medium",
+      TRUE                            ~ "High"
+    )
+  ) %>%
+  ungroup()
+
+complete_data <- bind_rows(
+  non_zero,
+  complete_data %>%
+    filter(zero_flag) %>%
+    mutate(intake_level = "None")
+)
+
+#pivot data for one row per individual
+final_table <- complete_data %>%
+  select(SEQN, FoodGroup, intake_level) %>%
+  pivot_wider(names_from = FoodGroup, values_from = intake_level, names_prefix = "FoodGroup_")
+
+#rename columns for clarity
+final_table <- final_table %>%
+  rename(`Milk and milk products` = FoodGroup_1,
+         `Meat, poultry, fish, and mixtures` = FoodGroup_2,
+         `Eggs` = FoodGroup_3,
+         `Legumes, nuts, and seeds` = FoodGroup_4,
+         `Grain products` = FoodGroup_5,
+         `Fruits` = FoodGroup_6,
+         `Vegetables` = FoodGroup_7,
+         `Fats, oils, and salad dressings` = FoodGroup_8,
+         `Sugars, sweets, and beverages` = FoodGroup_9)
+
+```
+
+### Determine age
+
+```{r demographic, echo=TRUE}
+Demo <- "../Data/DemographicData"
+Demo_files <- list.files(Demo, full.names = TRUE)
+
+wanted_cols <- c("SEQN", "RIAGENDR", "RIDAGEYR", "RIDAGEMN")
+
+Demo_data <- bind_rows(lapply(Demo_files, read_xpt)) %>%
+  select(any_of(wanted_cols)) %>%
+  rename(
+    Gender = RIAGENDR,
+    Age_Years = RIDAGEYR,
+    Age_Months = RIDAGEMN
+  )
+
+final_table <- final_table %>%
+  left_join(Demo_data %>% select(SEQN, Age_Years), by = "SEQN") %>%
+  mutate(Age_Group = if_else(Age_Years < 18, "Child", "Adult")) %>%
+  select(SEQN, Age_Years, Age_Group, everything())
+
+# View(final_table)
+
+# FINAL DIETARY TABLE -- ready for clustering
+
+```
+
+### Visualization
+
+```{r viz, echo=TRUE, fig.width=10, fig.height=6}
+
+summary_data <- complete_data %>%
+  group_by(FoodGroup, intake_level) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+#food group treated as an ordered factor
+summary_data$FoodGroup <- factor(summary_data$FoodGroup, levels = as.character(1:9))
+
+#stacked bar chart
+ggplot(summary_data, aes(x = FoodGroup, y = count, fill = intake_level)) +
+  geom_bar(stat = "identity") +  # position="fill" normalizes 
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete(labels = c(
+    "1" = "Milk and\nmilk products",
+    "2" = "Meat, poultry,\nfish, and mixtures",
+    "3" = "Eggs",
+    "4" = "Legumes, nuts,\nand seeds",
+    "5" = "Grain products",
+    "6" = "Fruits",
+    "7" = "Vegetables",
+    "8" = "Fats, oils,\nand salad dressings",
+    "9" = "Sugars, sweets,\nand beverages"
+  )) +
+  labs(title = "Distribution of Intake Levels by Food Group",
+       x = "Food Group",
+       y = "Percentage",
+       fill = "Intake Level") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+
+```
