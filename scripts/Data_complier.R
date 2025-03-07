@@ -7,7 +7,7 @@ library(openxlsx)
 
 Demo = "Data/DemographicData"
 Lab = "Data/LaboratoryData"
-Diet = "Data/DietaryInterview"
+Diet_data = read.xlsx("scripts/DIdata.xlsx")
 
 
 # Creating Master Demographic List
@@ -15,7 +15,22 @@ Diet = "Data/DietaryInterview"
 Demo_files = list.files(Demo, full.names = TRUE) 
 
 # concatenate all files together
-Demo_data = bind_rows(lapply(Demo_files, read_xpt))
+wanted_cols = c("SEQN", "RIAGENDR", "RIDAGEYR", "RIDAGEMN",
+                "RIDRETH1","RIDRETH3", "INDFMIN2","INDFMPIR")
+
+rename_map <- c(
+  "Gender" = "RIAGENDR",
+  "Age_Years" = "RIDAGEYR",
+  "Age_Months" = "RIDAGEMN",
+  "Ethnicity" = "RIDRETH1",
+  "Ethnicity_Non_Asian" = "RIDRETH3",
+  "Family_Income" = "INDFMIN2",
+  "Poverty_Ratio" = "INDFMPIR"
+)
+
+Demo_data = bind_rows(lapply(Demo_files, read_xpt)) %>%
+  select(any_of(wanted_cols)) %>%
+  rename(any_of(rename_map))
 
 
 # Creating Master Lab List
@@ -33,62 +48,27 @@ for (subdir in POP_subdirs){
   matching_file[[subdir]] = file_list
 }
 
-# combine data files of similarly named file from matching_files 
+# combine data files of similarly named file from matching_files
 Lab_data = lapply(names(matching_file), function(key){
   lab = bind_rows(lapply(matching_file[[key]], read_xpt))
-  lab %>% mutate(key = basename(key))
+  new_key = sub("^Data/LaboratoryData/", "", key)
+  lab %>% 
+    mutate(key = new_key) %>%
+    select(where(function(col) !all(is.na(col))))
 })
 
 # tibbles in data are now renamed into correct POP names
 names(Lab_data) <- sub("^Data/LaboratoryData/", "", names(matching_file))
 
-print(Lab_data)
+# combine all data together
+master_lab_data <- bind_rows(Lab_data)
 
-# DI_data1 = read_xpt("Data/DietaryInterview/2017-2018/DR1IFF_Jdietary-interview-1-17-18.xpt")
-# demoData = read_xpt("Data/DemographicData/DEMO_E.xpt")
-# 
-# view(demoData)
-# 
-# write.xlsx(DI_data1, "data.xlsx")
-# 
-# partIDs = demoData$SEQN %>% unique()
-# 
-# 
-# print(partIDs)
-# 
-# POP_files = "Data/LaboratoryData"
-# 
-# POP_subdir = list.dirs(POP_files, full.names = TRUE)
-# 
-# POP_subdir = POP_subdir[-1] #removes parent directory
-# 
-# matching_file = list()
-# 
-# # Goes into subdirs to find files with specific years 
-# for (subdir in POP_subdir){
-#   file_list = list.files(subdir, full.names = TRUE, pattern = "\\.xpt$")
-#   year_files = file_list[str_detect(file_list, "2018")] # year can change, could become generalized code for future years.
-#   if (length(year_files) > 0){
-#     matching_file[[subdir]] = year_files
-#   }
-# }
-# 
-# matching_file = unlist(matching_file, use.names = FALSE)
-# 
-# data = map(matching_file, read_xpt)
-# names(data) = basename(matching_file)
-# 
-# #Finds unique SEQNs
-# new_seqn_data = data %>%
-#   map(~ pull(.x, SEQN)) %>%
-#   unlist() %>%
-#   unique()
-# 
-# #filter to work with just participants that have POP data
-# filtered_demoData = demoData %>% filter(SEQN %in% new_seqn_data)
-#   
-# #TODO run filtered data on the diet data to get what we are working with
-# final_demoData = filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
-# 
-# #write.xlsx(final_demoData, "test final data.xlsx")
-# 
+Demo_Lab_data <- Demo_data %>%
+  left_join(master_lab_data, by = "SEQN")
+
+Master_data <- Demo_Lab_data %>%
+  left_join(Diet_data, by = "SEQN") %>%
+  filter(!is.na(key) & key != "")
+
+write.xlsx(Master_data, "Master_dataset.xlsx")
+
