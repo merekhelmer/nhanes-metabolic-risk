@@ -31,12 +31,12 @@ library(purrr)
 library(DT)
 
 # read in the data (update the file paths if needed)
-DI_data1 <- read_xpt("Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt")
-demoData <- read_xpt("Data/DemographicData/DEMO_E.xpt")
+DI_data1 <- read_xpt("../Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt")
+demoData <- read_xpt("../Data/DemographicData/DEMO_E.xpt")
 
 partIDs <- unique(DI_data1$SEQN)
 
-POP_files <- "Data/LaboratoryData"
+POP_files <- "../Data/LaboratoryData"
 POP_subdir <- list.dirs(POP_files, full.names = TRUE)
 POP_subdir <- POP_subdir[-1] #removes parent directory
 

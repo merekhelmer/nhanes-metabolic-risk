@@ -142,7 +142,7 @@ summary_data$FoodGroup <- factor(summary_data$FoodGroup, levels = as.character(1
 
 #stacked bar chart
 ggplot(summary_data, aes(x = FoodGroup, y = count, fill = intake_level)) +
-  geom_bar(stat = "identity", position = "fill") +  # position="fill" normalizes 
+  geom_bar(stat = "identity") +  # position="fill" normalizes 
   scale_y_continuous(labels = scales::percent_format()) +
   scale_x_discrete(labels = c(
     "1" = "Milk and\nmilk products",
