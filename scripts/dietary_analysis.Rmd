@@ -2,12 +2,14 @@
 title: "Dietary Intake Analysis"
 output: html_document
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(DT)
 ```
 
 ### Data Processing
+
 ```{r load-and-prepare-data}
 library(dplyr)
 library(tidyr)
@@ -44,6 +46,7 @@ aggregated_data <- data_filtered %>%
 ```
 
 ### Create New Dataset
+
 ```{r create-dataset, echo=TRUE}
 
 #every individual has an entry for all 9 food groups (fill missing values with 0)
@@ -96,13 +99,37 @@ final_table <- final_table %>%
          `Fats, oils, and salad dressings` = FoodGroup_8,
          `Sugars, sweets, and beverages` = FoodGroup_9)
 
+```
+
+### Determine age
+
+```{r demographic, echo=TRUE}
+Demo <- "../Data/DemographicData"
+Demo_files <- list.files(Demo, full.names = TRUE)
+
+wanted_cols <- c("SEQN", "RIAGENDR", "RIDAGEYR", "RIDAGEMN")
+
+Demo_data <- bind_rows(lapply(Demo_files, read_xpt)) %>%
+  select(any_of(wanted_cols)) %>%
+  rename(
+    Gender = RIAGENDR,
+    Age_Years = RIDAGEYR,
+    Age_Months = RIDAGEMN
+  )
+
+final_table <- final_table %>%
+  left_join(Demo_data %>% select(SEQN, Age_Years), by = "SEQN") %>%
+  mutate(Age_Group = if_else(Age_Years < 18, "Child", "Adult")) %>%
+  select(SEQN, Age_Years, Age_Group, everything())
+
 # View(final_table)
 
-# FINALIZED DATA TABLE: final_table can be merged with other datasets
+# FINAL DIETARY TABLE -- ready for clustering
 
 ```
 
 ### Visualization
+
 ```{r viz, echo=TRUE, fig.width=10, fig.height=6}
 
 summary_data <- complete_data %>%
