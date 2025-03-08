@@ -141,13 +141,13 @@ summary_data <- complete_data %>%
 summary_data$FoodGroup <- factor(summary_data$FoodGroup, levels = as.character(1:9))
 
 ggplot(summary_data, aes(x = FoodGroup, y = count, fill = factor(intake_level, 
-    levels = c("High", "Medium", "Low", "None")))) +  # Flipping order
+    levels = c("High", "Medium", "Low", "None")))) +  
   geom_bar(stat = "identity") +
   scale_fill_manual(values = c(
-    "High" = "#e5a64a",    # Soft Yellow/Gold
-    "Medium" = "#79a84a",  # Subdued Green
-    "Low" = "#5a9ec7",     # Muted Teal/Blue-Green
-    "None" = "#1f4e79"     # Deep Blue
+    "High" = "#e5a64a",    
+    "Medium" = "#79a84a",  
+    "Low" = "#5a9ec7",     
+    "None" = "#1f4e79"
   )) +
   scale_x_discrete(labels = c(
     "1" = "Milk and\nmilk products",
