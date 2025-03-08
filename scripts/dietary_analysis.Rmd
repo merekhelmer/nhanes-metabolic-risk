@@ -140,10 +140,15 @@ summary_data <- complete_data %>%
 #food group treated as an ordered factor
 summary_data$FoodGroup <- factor(summary_data$FoodGroup, levels = as.character(1:9))
 
-#stacked bar chart
-ggplot(summary_data, aes(x = FoodGroup, y = count, fill = intake_level)) +
-  geom_bar(stat = "identity") +  # position="fill" normalizes 
-  scale_y_continuous(labels = scales::percent_format()) +
+ggplot(summary_data, aes(x = FoodGroup, y = count, fill = factor(intake_level, 
+    levels = c("High", "Medium", "Low", "None")))) +  # Flipping order
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c(
+    "High" = "#e5a64a",    # Soft Yellow/Gold
+    "Medium" = "#79a84a",  # Subdued Green
+    "Low" = "#5a9ec7",     # Muted Teal/Blue-Green
+    "None" = "#1f4e79"     # Deep Blue
+  )) +
   scale_x_discrete(labels = c(
     "1" = "Milk and\nmilk products",
     "2" = "Meat, poultry,\nfish, and mixtures",
@@ -155,9 +160,9 @@ ggplot(summary_data, aes(x = FoodGroup, y = count, fill = intake_level)) +
     "8" = "Fats, oils,\nand salad dressings",
     "9" = "Sugars, sweets,\nand beverages"
   )) +
-  labs(title = "Distribution of Intake Levels by Food Group",
+  labs(title = "Number of People by Intake Level and Food Group",
        x = "Food Group",
-       y = "Percentage",
+       y = "Number of People",
        fill = "Intake Level") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
