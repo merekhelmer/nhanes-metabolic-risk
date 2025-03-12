@@ -127,7 +127,6 @@ find_totals = function(lab, key) {
   return (lab)
 }
 
-
 Demo = "Data/DemographicData"
 Lab = "Data/LaboratoryData"
 Diet_data = read.xlsx("scripts/DIdata.xlsx")
@@ -171,33 +170,27 @@ for (subdir in POP_subdirs){
   matching_file[[subdir]] = file_list
 }
 
-# combine data files of similarly named file from matching_files
-# Lab_data = lapply(names(matching_file), function(key){
-#   lab = bind_rows(lapply(matching_file[[key]], read_xpt))
-#   new_key = sub("^Data/LaboratoryData/", "", key)
-#   lab %>% 
-#     mutate(key = new_key) %>%
-#     select(where(function(col) !all(is.na(col))))
-# })
 Lab_data = lapply(names(matching_file), function(key){
   lab = bind_rows(lapply(matching_file[[key]], read_xpt))
   lab = find_totals(lab,key)
   lab %>% mutate(key = basename(key))
 })
 
-
 # tibbles in data are now renamed into correct POP names
 names(Lab_data) <- sub("^Data/LaboratoryData/", "", names(matching_file))
 
 # combine all data together
-master_lab_data <- bind_rows(Lab_data)
+Demo_Diet_data = Demo_data %>%
+  left_join(Diet_data, by = "SEQN")
 
-Demo_Lab_data <- Demo_data %>%
-  left_join(master_lab_data, by = "SEQN")
+for (i in seq_along(Lab_data)){
+  POP_tib = Lab_data[[i]]
+  POP_name = names(Lab_data)[i]
+  
+  Demo_Diet_POP_data = left_join(Demo_Diet_data, POP_tib, by="SEQN")
+  output_file_name = paste0("Demo_Diet_", POP_name, ".xlsx")
+  write.xlsx(Demo_Diet_POP_data, output_file_name)
+  
+}
 
-Master_data <- Demo_Lab_data %>%
-  left_join(Diet_data, by = "SEQN") %>%
-  filter(!is.na(key) & key != "")
-
-write.xlsx(Master_data, "Master_dataset.xlsx")
 
