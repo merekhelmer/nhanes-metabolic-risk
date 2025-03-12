@@ -4,12 +4,6 @@ library(dplyr)
 library(stringr)
 library(purrr)
 library(openxlsx)
-library(tidyverse)
-library(haven)
-library(dplyr)
-library(stringr)
-library(purrr)
-library(openxlsx)
 
 total_lead = function(lab) {
   keeps_liters = c("LBXBCD","LBXTHG","LBXBSE","LBXBMN")
