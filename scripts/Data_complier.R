@@ -1,8 +1,5 @@
 library(tidyverse)
 library(haven)
-library(dplyr)
-library(stringr)
-library(purrr)
 library(openxlsx)
 
 total_lead = function(lab) {
@@ -188,9 +185,7 @@ for (i in seq_along(Lab_data)){
   POP_name = names(Lab_data)[i]
   
   Demo_Diet_POP_data = left_join(Demo_Diet_data, POP_tib, by="SEQN")
-  output_file_name = paste0("Demo_Diet_", POP_name, ".xlsx")
+  output_file_name = paste0("Data/Processed_Datasets/Demo_Diet_", POP_name, ".xlsx")
   write.xlsx(Demo_Diet_POP_data, output_file_name)
   
 }
-
-
