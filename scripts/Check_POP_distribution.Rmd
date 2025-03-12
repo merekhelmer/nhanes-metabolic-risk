@@ -210,7 +210,9 @@ plot_insecticides_distribution = function(filename, POP, year) {
     POPData = mutate(POPData, Total = 0)
     for (col in specific) {
       label = attr(POPData[[col]],"label")
-      if (grepl("(ug/L)",label) & !grepl("comment",label)) { 
+      if (grepl("(ug/
+                
+                L)",label) & !grepl("comment",label)) { 
           POPData = mutate(POPData, Total = Total + POPData[[col]])
       }
     }
@@ -264,7 +266,5 @@ plot_herbicide_distribution = function(filename, POP, year) {
   xaxis = "Level (log(ug/L))"
   make_plot(na.omit(POPData$Total),title, xaxis)
 }
-
-check_distribution_by_year(2007,1)
 ```
 
