@@ -178,14 +178,27 @@ names(Lab_data) <- sub("^Data/LaboratoryData/", "", names(matching_file))
 
 # combine all data together
 Demo_Diet_data = Demo_data %>%
-  left_join(Diet_data, by = "SEQN")
+  inner_join(Diet_data, by = "SEQN")
+
+Demo_Diet_data[] = lapply(Demo_Diet_data, function(x){
+  x = replace(x,x == "High", 3)
+  x = replace(x,x == "Medium", 2)
+  x = replace(x,x == "Low", 1) 
+  x = replace(x, is.na(x), 0) 
+  x = replace(x,x == "Adult", 1)
+  x = replace(x,x == "Child", 0)
+  return(as.numeric(x))
+})
+print(Demo_Diet_data)
 
 for (i in seq_along(Lab_data)){
   POP_tib = Lab_data[[i]]
   POP_name = names(Lab_data)[i]
   
-  Demo_Diet_POP_data = left_join(Demo_Diet_data, POP_tib, by="SEQN")
+  Demo_Diet_POP_data = inner_join(Demo_Diet_data, POP_tib, by="SEQN")
+  if (POP_name == "metals"){
+    var = Demo_Diet_POP_data
+  }
   output_file_name = paste0("Data/Processed_Datasets/Demo_Diet_", POP_name, ".xlsx")
   write.xlsx(Demo_Diet_POP_data, output_file_name)
-  
 }
