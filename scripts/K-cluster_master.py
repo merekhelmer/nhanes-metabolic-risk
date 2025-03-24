@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from sklearn.impute import SimpleImputer
 import os
 from sklearn.metrics import silhouette_score, silhouette_samples
 
@@ -22,7 +22,7 @@ for filename in os.listdir(data_path):
         print(f"skipping {filename}")
         continue
     if filename == "Demo_Diet_standard-biochemistry-profile.xlsx":
-        print(f"skipping {fname}")
+        print(f"skipping {filename}")
         continue
     
     fname = filename_to_title(filename)
@@ -32,14 +32,13 @@ for filename in os.listdir(data_path):
     data = pd.read_excel(file_path, engine='openpyxl')
 
     # features are the varible names in the columns of the data set
-    features = list(data.columns[10:-1])
+    features = list(data.columns[10:])
     
     # transformed features added to encoded data
     X = data[features]
+    
     # standardize features
     scaler = StandardScaler()
-    #imputer = SimpleImputer(strategy='mean')
-    #X_imputed = imputer.fit_transform(X)
     X.iloc[:,-1] = scaler.fit_transform(X.iloc[:,[-1]])
 
     # find optimal of amount clusters
@@ -52,6 +51,57 @@ for filename in os.listdir(data_path):
 
     score = silhouette_score(X, kmeans.labels_)
     silhouette_scores.append(score)
+
+    data["cluster"] = y_means
+
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X)
+
+    """
+    # Scatter plot of the clusters
+    plt.figure(figsize=(8, 5))
+    plt.scatter(X_pca[:, 0], X_pca[:, 1], c=data['cluster'], cmap='viridis', alpha=0.6)
+    plt.xlabel("PCA Component 1")
+    plt.ylabel("PCA Component 2")
+    plt.title("Clusters Visualization via PCA")
+    plt.colorbar(label="Cluster")
+    plt.show()
+
+    # Examine the PCA loadings
+    print(f"PCA Components (loadings): {fname}")
+    print(pca.components_)
+    """
+
+    # Explained variance ratio
+    print("Explained Variance Ratio:")
+    print(pca.explained_variance_ratio_)
+
+    # Create a DataFrame for easier interpretation of loadings
+    loadings_df = pd.DataFrame(pca.components_.T, index=features, columns=["PC1", "PC2"])
+    print(loadings_df)
+
+    # Visualize the loadings for PC1
+    plt.figure(figsize=(8, 5))
+    plt.bar(loadings_df.index, loadings_df["PC1"])
+    plt.xlabel("Food Groups")
+    plt.ylabel("Loading on PC1")
+    plt.title(f"PCA Loadings for PC1: {fname}")
+    plt.xticks(rotation=45, ha="right")
+    plt.show()
+
+    # And visualizing loadings for PC2
+    plt.figure(figsize=(8, 5))
+    plt.bar(loadings_df.index, loadings_df["PC2"])
+    plt.xlabel("Food Groups")
+    plt.ylabel("Loading on PC2")
+    plt.title(f"PCA Loadings for PC2: {fname}")
+    plt.xticks(rotation=45, ha="right")
+    plt.show()
+    
+"""
+    for cluster, group in data.groupby("cluster"):
+        print(f"\nCluster {cluster}:")
+        print(group.head())
 
     fig , ax = plt.subplots(figsize=(7,7))
 
@@ -73,22 +123,13 @@ for filename in os.listdir(data_path):
 
     ax.set_title(f"Silhouette Plot {fname}: {k} clusters ")
     ax.set_xlabel("Silhouette Coefficient")
-    ax.set_ylabel("cluster label")
+    ax.set_ylabel("Samples Sorted by Cluster")
     ax.set_yticks([])
     ax.set_xlim(-0.1, 0.5)
 
     plt.show()
     
-
-"""
     # give me the plot!
-    plt.figure(figsize=(8, 4))
-    plt.plot(k_range, inertia, marker='o')
-    plt.xlabel('Number of clusters')
-    plt.ylabel('Inertia')
-    plt.title('Elbow Method for Optimal k')
-    plt.show()
-
     plt.figure(figsize=(8, 4))
     plt.plot(k_range, silhouette_scores, marker='o')
     plt.xlabel('Number of clusters')
