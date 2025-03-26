@@ -6,12 +6,15 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import os
 from sklearn.metrics import silhouette_score, silhouette_samples
+from scipy.stats import f_oneway #import ANOVA
 
 def filename_to_title(filename):
     fname = filename[10:-5]
     fname = no_dashes = fname.replace('-', ' ')
     fname = no_dashes[0].upper() + no_dashes[1:]
     return fname
+  
+anova_results = []
 
 # read data in 
 data_path  = "Data/Processed_Datasets"
@@ -97,6 +100,36 @@ for filename in os.listdir(data_path):
     plt.title(f"PCA Loadings for PC2: {fname}")
     plt.xticks(rotation=45, ha="right")
     plt.show()
+    
+    # -----ANOVA Test for POP Levels-----
+    if "POP_level" in data.columns:
+        # create groups of POP_level for each cluster, dropping any missing values
+        groups = [group["POP_level"].dropna() for name, group in data.groupby("cluster")]
+        # run ANOVA if there are at least two groups
+        if len(groups) >= 2:
+            anova_res = f_oneway(*groups)
+            print(f"ANOVA for POP_level in {fname}: F = {anova_res.statistic:.3f}, p = {anova_res.pvalue:.3f}")
+            anova_results.append({
+                "File": fname,
+                "F_statistic": anova_res.statistic,
+                "p_value": anova_res.pvalue
+            })
+        else:
+            print(f"Not enough groups for ANOVA in {fname}")
+    else:
+        print(f"POP_level column not found in {fname}")
+        
+# summary table of ANOVA results for all processed files
+anova_df = pd.DataFrame(anova_results)
+print("Summary of ANOVA Results:")
+print(anova_df)
+
+# anova_df.to_csv("anova_summary_results.csv", index=False)
+    
+    
+    
+    
+    
     
 """
     for cluster, group in data.groupby("cluster"):
