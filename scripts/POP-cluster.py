@@ -1,67 +1,69 @@
 import pandas as pd
-import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-import os
-from sklearn.metrics import silhouette_score, silhouette_samples
+from sklearn.metrics import silhouette_score
+from sklearn.impute import SimpleImputer
 
-# read data in
-data_path = "../Data/Processed_Datasets"
-for filename in os.listdir(data_path):
-    if "profile" in filename:
-        continue
-    print(f"starting with {filename}")
-    file_path = os.path.join(data_path, filename)
+data = pd.read_excel("Data/Processed_Datasets/master.xlsx", engine='openpyxl')
 
-    data = pd.read_excel(file_path, engine='openpyxl')
+# features are the varible names in the columns of the data set
+features = list(data.columns[19:])
 
-    # grab just the POPs
-    features = data.columns[-2]
-    X = data[features]
-    print(X)
+# transformed features added to encoded data
+X = data[features].copy()
 
-"""
-    # normalize the data
-    scaler = StandardScaler()
-    #X.iloc[:, -1] = scaler.fit_transform(X.iloc[:, [-1]])
-    X = scaler.fit_transform(X)
+imputer = SimpleImputer(strategy='mean')
+X_imputed = imputer.fit_transform(X)
+X = pd.DataFrame(X_imputed, columns=features)
 
-    # run clustering
-    silhouette_scores = []
-    k_range = range(4, 7)
-    for k in k_range:
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(X)
-        y_means = kmeans.fit_predict(X)
+# standardize features
+scaler = StandardScaler()
+X.iloc[:,-1] = scaler.fit_transform(X.iloc[:,[-1]])
 
-        score = silhouette_score(X, kmeans.labels_)
-        silhouette_scores.append(score)
+# find optimal of amount clusters
+inertia = []
+silhouette_scores = []
+k = 3
+kmeans = KMeans(n_clusters=k, random_state=42)
+y_means = kmeans.fit_predict(X)
+inertia.append(kmeans.inertia_)
 
-        fig, ax = plt.subplots(figsize=(7, 7))
+score = silhouette_score(X, kmeans.labels_)
+silhouette_scores.append(score)
 
-        sil_val = silhouette_samples(X, y_means)
+data["cluster"] = y_means
 
-        y_lower = 10
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
 
-        for i in range(k):
-            ith_cluster_sil_val = sil_val[y_means == i]
-            ith_cluster_sil_val.sort()
-            y_upper = y_lower + len(ith_cluster_sil_val)
+plt.figure(figsize=(8, 5))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=data['cluster'], cmap='viridis', alpha=0.6)
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.title(f"Clusters Visualization via PCA for all POPs")
+plt.colorbar(label="Cluster")
+plt.show()
 
-            color = plt.cm.jet(i / 4)
-            ax.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_sil_val, facecolor=color, edgecolor=color,
-                             alpha=0.7)
+# Create a DataFrame for easier interpretation of loadings
+loadings_df = pd.DataFrame(pca.components_.T, index=features, columns=["PC1", "PC2"])
+print(loadings_df)
 
-            y_lower = y_upper + 10
+# Visualize the loadings for PC1
+plt.figure(figsize=(8, 5))
+plt.bar(loadings_df.index, loadings_df["PC1"])
+plt.xlabel("PCA variables")
+plt.ylabel("Loading on PC1")
+plt.title(f"PCA Loadings for PC1")
+plt.xticks(rotation=30, ha="right")
+plt.show()
 
-        ax.axvline(x=np.mean(sil_val), color="red", linestyle="--")
-
-        ax.set_title("Sil plot")
-        ax.set_xlabel("sil coeff")
-        ax.set_ylabel("cluster laber")
-        ax.set_yticks([])
-        ax.set_xlim(-0.1, 1)
-
-        plt.show()
-"""
+# And visualizing loadings for PC2
+plt.figure(figsize=(8, 5))
+plt.bar(loadings_df.index, loadings_df["PC2"])
+plt.xlabel("PCA variables")
+plt.ylabel("Loading on PC2")
+plt.title(f"PCA Loadings for PC2")
+plt.xticks(rotation=30, ha="right")
+plt.show()
