@@ -14,7 +14,7 @@ def filename_to_title(filename):
     return fname
 
 # read data in 
-data_path  = "Data/Processed_Datasets"
+data_path  = "../Data/Processed_Datasets"
 for filename in os.listdir(data_path):
     print(f"stating with {filename}")
     
@@ -32,7 +32,7 @@ for filename in os.listdir(data_path):
     data = pd.read_excel(file_path, engine='openpyxl')
 
     # features are the varible names in the columns of the data set
-    features = list(data.columns[10:])
+    features = list(data.columns[10:-1])
     
     # transformed features added to encoded data
     X = data[features]
@@ -48,6 +48,12 @@ for filename in os.listdir(data_path):
     kmeans = KMeans(n_clusters=k, random_state=42)
     y_means = kmeans.fit_predict(X)
     inertia.append(kmeans.inertia_)
+
+    cluster_labels = pd.DataFrame(kmeans.labels_)
+    output_table = pd.concat([data.iloc[:,0], cluster_labels], axis = 1)
+    output_table.to_excel(rf"../Data/Clustered_Datasets/clustered_{filename}", index = False)
+    print(output_table)
+
 
     score = silhouette_score(X, kmeans.labels_)
     silhouette_scores.append(score)
@@ -70,7 +76,7 @@ for filename in os.listdir(data_path):
     # Examine the PCA loadings
     print(f"PCA Components (loadings): {fname}")
     print(pca.components_)
-    """
+"""
 
     # Explained variance ratio
     print("Explained Variance Ratio:")
@@ -97,7 +103,7 @@ for filename in os.listdir(data_path):
     plt.title(f"PCA Loadings for PC2: {fname}")
     plt.xticks(rotation=45, ha="right")
     plt.show()
-    
+
 """
     for cluster, group in data.groupby("cluster"):
         print(f"\nCluster {cluster}:")
