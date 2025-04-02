@@ -6,12 +6,20 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import os
 from sklearn.metrics import silhouette_score, silhouette_samples
+from scipy.stats import f_oneway
+
 
 def filename_to_title(filename):
     fname = filename[10:-5]
-    fname = no_dashes = fname.replace('-', ' ')
-    fname = no_dashes[0].upper() + no_dashes[1:]
-    return fname
+    fname = fname.replace('-', ' ')
+    fname = fname.split(" ")
+    name = ""
+    for w in fname:
+        name += w[0].upper() + w[1:] + " "
+    print(name)
+    return name
+
+anova_results = []
 
 # read data in 
 data_path  = "Data/Processed_Datasets"
@@ -57,20 +65,56 @@ for filename in os.listdir(data_path):
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(X)
 
+
+    POP_level = data.columns[-2]
+    """
+# ---------------- ANOVA Test for POP Levels ----------------
+    
+
+    if POP_level in data.columns:
+        # Create groups of POP_level for each cluster, dropping any missing values
+        groups = [group[POP_level].dropna() for name, group in data.groupby("cluster")]
+        # Only run ANOVA if there are at least two groups
+        if len(groups) >= 2:
+            anova_res = f_oneway(*groups)
+            print(f"ANOVA for POP_level in {fname}: F = {anova_res.statistic:.3f}, p = {anova_res.pvalue:.3f}")
+            anova_results.append({
+                "File": fname,
+                "F_statistic": anova_res.statistic,
+                "p_value": anova_res.pvalue
+            })
+        else:
+            print(f"Not enough groups for ANOVA in {fname}")
+    else:
+        print(f"POP_level column not found in {fname}")
+    
+# Create a summary table of ANOVA results for all processed files
+anova_df = pd.DataFrame(anova_results)
+print("Summary of ANOVA Results:")
+print(anova_df)
+
+# Optionally, save the ANOVA summary table to a CSV for later use:
+anova_df.to_csv("anova_summary_results.csv", index=False)
+
     """
     # Scatter plot of the clusters
     plt.figure(figsize=(8, 5))
     plt.scatter(X_pca[:, 0], X_pca[:, 1], c=data['cluster'], cmap='viridis', alpha=0.6)
     plt.xlabel("PCA Component 1")
     plt.ylabel("PCA Component 2")
-    plt.title("Clusters Visualization via PCA")
+    plt.title(f"Clusters Visualization via PCA {fname}")
     plt.colorbar(label="Cluster")
     plt.show()
-
+    
+    """
     # Examine the PCA loadings
     print(f"PCA Components (loadings): {fname}")
     print(pca.components_)
-    """
+
+    for cluster, group in data.groupby("cluster"):
+        print(f"\nCluster {cluster}:")
+        print(group.head())
+    
 
     # Explained variance ratio
     print("Explained Variance Ratio:")
@@ -83,22 +127,23 @@ for filename in os.listdir(data_path):
     # Visualize the loadings for PC1
     plt.figure(figsize=(8, 5))
     plt.bar(loadings_df.index, loadings_df["PC1"])
-    plt.xlabel("Food Groups")
+    plt.xlabel("PCA variables")
     plt.ylabel("Loading on PC1")
     plt.title(f"PCA Loadings for PC1: {fname}")
-    plt.xticks(rotation=45, ha="right")
+    plt.xticks(rotation=30, ha="right")
     plt.show()
 
     # And visualizing loadings for PC2
     plt.figure(figsize=(8, 5))
     plt.bar(loadings_df.index, loadings_df["PC2"])
-    plt.xlabel("Food Groups")
+    plt.xlabel("PCA variables")
     plt.ylabel("Loading on PC2")
     plt.title(f"PCA Loadings for PC2: {fname}")
-    plt.xticks(rotation=45, ha="right")
+    plt.xticks(rotation=30, ha="right")
     plt.show()
     
-"""
+    """
+    """
     for cluster, group in data.groupby("cluster"):
         print(f"\nCluster {cluster}:")
         print(group.head())
@@ -136,4 +181,4 @@ for filename in os.listdir(data_path):
     plt.ylabel('Silhouette Score')
     plt.title('Silhouette Score for Optimal k')
     plt.show()"
-"""
+    """

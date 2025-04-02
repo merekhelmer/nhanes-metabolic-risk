@@ -1,13 +1,132 @@
 library(tidyverse)
 library(haven)
-library(dplyr)
-library(stringr)
-library(purrr)
 library(openxlsx)
+
+total_lead = function(lab) {
+  keeps_liters = c("LBXBCD","LBXTHG","LBXBSE","LBXBMN")
+  keeps_dliters = c("LBXBPB")
+  lab = mutate(lab, Total_Cadmium_Lead_and_Manganese = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps_liters) {
+      lab = mutate(lab, Total_Cadmium_Lead_and_Manganese = Total_Cadmium_Lead_and_Manganese + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+    else {
+      if (col %in% keeps_dliters) {
+        lab = mutate(lab, Total_Cadmium_Lead_and_Manganese = Total_Cadmium_Lead_and_Manganese + (ifelse(is.na(lab[[col]]), 0, lab[[col]]))/10)
+      }
+    }
+  }
+  return(lab[, c("SEQN", "Total_Cadmium_Lead_and_Manganese")])
+}
+
+total_phenols = function(lab) {
+  keeps = c("URX4TO","URXPB3","URXBPH","URXTRS","URXBUP","URXEPB","URXMPB","URXPPB","URXTRS")
+  lab = mutate(lab, Total_environmental_phenols = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_environmental_phenols = Total_environmental_phenols + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_environmental_phenols")])
+}
+
+total_flamer = function(lab) {
+  keeps = c("SSDPHP","SSBDCPP","SSBCPP","SSSBCED","SSDPCP","SSDOCP","SSDBUP","SSDBZP","SSTBB","URXBCPP","URXPCEP","URXBDCP","URXDBUP","URXDPHP","URXTBBA","SSDCP","SSTBBA","SSIPPP","SSBPPP")
+  lab = mutate(lab, Total_flame_retardants = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_flame_retardants = Total_flame_retardants + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_flame_retardants")])
+}
+
+total_metals = function(lab) {
+  keeps = c("URXUBA","URXUBE","URXUCD","URXUCO","URXUCS","URXUMO","URXUPB","URXUPT","URXUSB","URXUTL","URXUTU","URXUUR","URXUMN","URXUSN","URXUSR")
+  lab = mutate(lab, Total_metals = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_metals = Total_metals + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_metals")])
+}
+
+total_insecticides = function(lab) {
+  keeps = c("URXOP1","URXOP2","URXOP3","URXOP4","URXOP5","URXOP6")
+  lab = mutate(lab, Total_insecticides = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_insecticides = Total_insecticides + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_insecticides")])
+}
+
+total_pesticides = function(lab) {  
+  keeps = c("URXAPE","URXETU","URXMMI","URXMTO","URXOMO","URXPTU","URXBSM","URXCHS","URXEMM","URXFRM","URXHLS","URXMSM","URXMTM","URXNOS","URXOXS","URXPIM","URXPRO","URXRIM","URXSMM","URXSSF","URXTHF","URXTRA","URXTRN","URXOPP","URS14D","URXDCB","URX1TB","URX3TB")
+  lab = mutate(lab, Total_pesticides = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_pesticides = Total_pesticides + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_pesticides")])
+}
+
+total_polychems = function(lab) {
+  keeps = c("LBXPFDE","LBXPFHS","LBXMPAH","LBXPFBS","LBXPFHP","LBXPFNA","LBXPFUA","LBXPFDO","LBXEPAH","LBXPFDE","LBXPFOA","LBXPFOS","LBXPFSA","LBXPFHS")
+  lab = mutate(lab, Total_polychems = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_polychems = Total_polychems + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_polychems")])
+}
+
+total_herbicides = function(lab) {
+  keeps = c("URX24D","URX25T","URX4FP","URXCB3","URXCPM","URXMAL","URXOPM","URXOXY","URXPAR","URXTCC")
+  lab = mutate(lab, Total_herbicides = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_herbicides = Total_herbicides + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_herbicides")])
+}
+
+total_biochem = function(lab) {
+  keeps = c("URX24D","URX25T","URX4FP","URXCB3","URXCPM","URXMAL","URXOPM","URXOXY","URXPAR","URXTCC")
+  lab = mutate(lab, Total_biochem = 0)
+  for (col in colnames(lab)) {
+    if (col %in% keeps) {
+      lab = mutate(lab, Total_biochem = Total_biochem + ifelse(is.na(lab[[col]]), 0, lab[[col]]))
+    }
+  }
+  return(lab[,c("SEQN", "Total_biochem")])
+}
+
+find_totals = function(lab, key) {
+  lab = switch(key,
+               "Data/LaboratoryData/Cadmium-Lead-and-Manganese" = total_lead(lab),
+               "Data/LaboratoryData/environmental-phenols" = total_phenols(lab),
+               "Data/LaboratoryData/flame-retardants" = total_flamer(lab),
+               "Data/LaboratoryData/metals" = total_metals(lab),
+               "Data/LaboratoryData/organophosphate-insecticides" = total_insecticides(lab),
+               "Data/LaboratoryData/parathyroid-hormone" = lab,
+               "Data/LaboratoryData/pesticides" = total_pesticides(lab),
+               "Data/LaboratoryData/polychlorinated-biphenyls" = lab,
+               "Data/LaboratoryData/polyfluoroalkyl-chemicals" = total_polychems(lab),
+               "Data/LaboratoryData/pyrethroids-herbicides-and-OP-metabolites" = total_herbicides(lab),
+               "Data/LaboratoryData/standard-biochemistry-profile" = lab,
+               "Data/LaboratoryData/thyroid-profile" = lab)
+  return (lab)
+}
 
 Demo = "Data/DemographicData"
 Lab = "Data/LaboratoryData"
-Diet = "Data/DietaryInterview"
+Diet_data = read.xlsx("scripts/DIdata.xlsx")
 
 
 # Creating Master Demographic List
@@ -15,7 +134,22 @@ Diet = "Data/DietaryInterview"
 Demo_files = list.files(Demo, full.names = TRUE) 
 
 # concatenate all files together
-Demo_data = bind_rows(lapply(Demo_files, read_xpt))
+wanted_cols = c("SEQN", "RIAGENDR", "RIDAGEYR", "RIDAGEMN",
+                "RIDRETH1","RIDRETH3", "INDFMIN2","INDFMPIR")
+
+rename_map <- c(
+  "Gender" = "RIAGENDR",
+  "Age_Years" = "RIDAGEYR",
+  "Age_Months" = "RIDAGEMN",
+  "Ethnicity" = "RIDRETH1",
+  "Ethnicity_Non_Asian" = "RIDRETH3",
+  "Family_Income" = "INDFMIN2",
+  "Poverty_Ratio" = "INDFMPIR"
+)
+
+Demo_data = bind_rows(lapply(Demo_files, read_xpt)) %>%
+  select(any_of(wanted_cols)) %>%
+  rename(any_of(rename_map))
 
 
 # Creating Master Lab List
@@ -33,62 +167,38 @@ for (subdir in POP_subdirs){
   matching_file[[subdir]] = file_list
 }
 
-# combine data files of similarly named file from matching_files 
 Lab_data = lapply(names(matching_file), function(key){
   lab = bind_rows(lapply(matching_file[[key]], read_xpt))
+  lab = find_totals(lab,key)
   lab %>% mutate(key = basename(key))
 })
 
 # tibbles in data are now renamed into correct POP names
 names(Lab_data) <- sub("^Data/LaboratoryData/", "", names(matching_file))
 
-print(Lab_data)
+# combine all data together
+Demo_Diet_data = Demo_data %>%
+  inner_join(Diet_data, by = "SEQN")
 
-# DI_data1 = read_xpt("Data/DietaryInterview/2017-2018/DR1IFF_Jdietary-interview-1-17-18.xpt")
-# demoData = read_xpt("Data/DemographicData/DEMO_E.xpt")
-# 
-# view(demoData)
-# 
-# write.xlsx(DI_data1, "data.xlsx")
-# 
-# partIDs = demoData$SEQN %>% unique()
-# 
-# 
-# print(partIDs)
-# 
-# POP_files = "Data/LaboratoryData"
-# 
-# POP_subdir = list.dirs(POP_files, full.names = TRUE)
-# 
-# POP_subdir = POP_subdir[-1] #removes parent directory
-# 
-# matching_file = list()
-# 
-# # Goes into subdirs to find files with specific years 
-# for (subdir in POP_subdir){
-#   file_list = list.files(subdir, full.names = TRUE, pattern = "\\.xpt$")
-#   year_files = file_list[str_detect(file_list, "2018")] # year can change, could become generalized code for future years.
-#   if (length(year_files) > 0){
-#     matching_file[[subdir]] = year_files
-#   }
-# }
-# 
-# matching_file = unlist(matching_file, use.names = FALSE)
-# 
-# data = map(matching_file, read_xpt)
-# names(data) = basename(matching_file)
-# 
-# #Finds unique SEQNs
-# new_seqn_data = data %>%
-#   map(~ pull(.x, SEQN)) %>%
-#   unlist() %>%
-#   unique()
-# 
-# #filter to work with just participants that have POP data
-# filtered_demoData = demoData %>% filter(SEQN %in% new_seqn_data)
-#   
-# #TODO run filtered data on the diet data to get what we are working with
-# final_demoData = filtered_demoData %>% filter(SEQN %in% DI_data1$SEQN)
-# 
-# #write.xlsx(final_demoData, "test final data.xlsx")
-# 
+Demo_Diet_data[] = lapply(Demo_Diet_data, function(x){
+  x = replace(x,x == "High", 3)
+  x = replace(x,x == "Medium", 2)
+  x = replace(x,x == "Low", 1) 
+  x = replace(x, is.na(x), 0) 
+  x = replace(x,x == "Adult", 1)
+  x = replace(x,x == "Child", 0)
+  return(as.numeric(x))
+})
+
+for (i in seq_along(Lab_data)){
+  POP_tib = Lab_data[[i]]
+  POP_name = names(Lab_data)[i]
+  
+  Demo_Diet_POP_data = inner_join(Demo_Diet_data, POP_tib, by="SEQN")
+  
+  # Remove last col removes key col
+  Demo_Diet_POP_data = Demo_Diet_POP_data[, -ncol(Demo_Diet_POP_data)]
+  
+  output_file_name = paste0("Data/Processed_Datasets/Demo_Diet_", POP_name, ".xlsx")
+  write.xlsx(Demo_Diet_POP_data, output_file_name)
+}
