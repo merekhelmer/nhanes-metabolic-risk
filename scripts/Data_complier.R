@@ -189,16 +189,16 @@ Demo_Diet_data[] = lapply(Demo_Diet_data, function(x){
   x = replace(x,x == "Child", 0)
   return(as.numeric(x))
 })
-print(Demo_Diet_data)
 
 for (i in seq_along(Lab_data)){
   POP_tib = Lab_data[[i]]
   POP_name = names(Lab_data)[i]
   
   Demo_Diet_POP_data = inner_join(Demo_Diet_data, POP_tib, by="SEQN")
-  if (POP_name == "metals"){
-    var = Demo_Diet_POP_data
-  }
+  
+  # Remove last col removes key col
+  Demo_Diet_POP_data = Demo_Diet_POP_data[, -ncol(Demo_Diet_POP_data)]
+  
   output_file_name = paste0("Data/Processed_Datasets/Demo_Diet_", POP_name, ".xlsx")
   write.xlsx(Demo_Diet_POP_data, output_file_name)
 }
