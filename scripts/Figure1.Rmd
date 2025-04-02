@@ -1,7 +1,7 @@
 ---
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 ## Figure 1 Tables
 
@@ -32,7 +32,7 @@ library(DT)
 
 # read in the data (update the file paths if needed)
 DI_data1 <- read_xpt("../Data/DietaryInterview/2007-2008/DR1IFF_Edietary-interview-1-07-08.xpt")
-demoData <- read_xpt("../Data/DemographicData/DEMO_E.xpt")
+demoData <- read_xpt("../Data/DemographicData/DEMO_E_Gooddemographic07-08.xpt")
 
 partIDs <- unique(DI_data1$SEQN)
 
@@ -173,6 +173,7 @@ n_income <- nrow(income_block)
 n_pir <- nrow(pir_block)
 header_rows <- c(1, n_sex + 1, n_sex + n_race + 1, n_sex + n_race + n_income + 1)
 
+
 # ----POLISHED TABLE----
 kbl <- kable(
   final_summary,
@@ -181,10 +182,14 @@ kbl <- kable(
 ) %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed"),
-    full_width = TRUE
-  )
+    full_width = TRUE,
+    font_size = 14,  # Larger text
+    latex_options = c("scale_down")
+  ) %>%
+  column_spec(1, width = "20%") %>%
+  column_spec(2, width = "15%")
 
-# bold header rows
+# bold specific rows
 for (row in header_rows) {
   kbl <- row_spec(kbl, row, bold = TRUE)
 }
