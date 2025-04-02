@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import silhouette_score
 from sklearn.impute import SimpleImputer
 
-data = pd.read_excel("Data/Processed_Datasets/master.xlsx", engine='openpyxl')
+data = pd.read_excel("Data/Processed_Datasets/NAs_<=3_MasterSheet.xlsx")
 
 # features are the varible names in the columns of the data set
 features = list(data.columns[19:])
@@ -48,7 +48,7 @@ plt.show()
 
 # Create a DataFrame for easier interpretation of loadings
 loadings_df = pd.DataFrame(pca.components_.T, index=features, columns=["PC1", "PC2"])
-print(loadings_df)
+
 
 # Visualize the loadings for PC1
 plt.figure(figsize=(8, 5))
