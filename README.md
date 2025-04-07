@@ -1,11 +1,29 @@
-# Dietary Patterns, POP blood levels, and Metabolic Health
+# Dietary Patterns, POP Blood Levels, and Metabolic Health
 
-## Aims 
-* Identify dietary patterns associated with greater blood levels of persistent organic pollutants (POP) in adults (aged ≥18 years) and children, separately
-* Assess the association of diet-POP patterns on risk for metabolic health indicators
-   
+## Overview
+This project aims to:
+- **Identify dietary patterns** associated with elevated blood levels of persistent organic pollutants (POPs) in adults (aged ≥18 years) and children.
+- **Assess the association** between diet-POP patterns and metabolic health indicators.
+
 ## Workflow
-1. Clone the github repository
-2. Run Figure1.Rmd
-- You can either press "knit" at the top to generate a pdf document
-- Run the cells sequentially and view the output
+
+#### 1. Clone the github repository
+- git clone `https://github.com/yourusername/yourrepository.git
+cd yourrepository`
+#### 2. Generate Figure 1A (Population Table)
+- Open `Figure1A.Rmd` in RStudio.
+- Click the "Knit" button to generate a PDF/HTML document, or run the code cells sequentially to view the output.
+#### 3. Generate Figure 1B (POP Distributions)
+- Open `Figure1B.Rmd` and run in the same manner as above.
+#### 4. Generate Figure 2 (Dietary Analysis Stacked Bar Chart)
+- Open and run `Figure2.Rmd`.
+#### 5. Compile Data
+- Execute `Data_compiler.R` to consolidate and preprocess the dietary/POP data.
+#### 6. Generate Figure 3A (Dietary Clusters)
+- Open and run `Figure3A.Rmd` to create dietary clusters.
+#### 7. Create Dataset with POP Clusters
+- Run the script `Create_Dataset_POP_Clusters.R`.
+#### 8. Generate Figure 3B (POP Clusters)
+- Execute `Figure3B.py` to produce the POP clusters visualization.
+#### 9. Conduct Chi-Square Cluster Analysis
+- Run `Figure3C.py` to perform the chi-square analysis on the clusters.
