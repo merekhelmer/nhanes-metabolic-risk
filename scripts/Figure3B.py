@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import silhouette_score
 from sklearn.impute import SimpleImputer
 
-data = pd.read_excel("Data/Processed_Datasets/NAs_<=3_MasterSheet.xlsx")
+data = pd.read_excel("Data/Processed_Datasets/NAs_MasterSheet.xlsx")
 
 # features are the varible names in the columns of the data set
 features = list(data.columns[19:])
