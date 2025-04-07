@@ -3,7 +3,7 @@ import os
 from scipy.stats import chi2_contingency
 
 thyroid_df_list = []
-data_path = "../Data/Questionnaire/ThyroidQuestionaire"
+data_path = "Data/Questionnaire/ThyroidQuestionaire"
 for filename in os.listdir(data_path):
     file_path = os.path.join(data_path, filename)
 
@@ -22,7 +22,7 @@ thyroid_df = thyroid_df[thyroid_df['MCQ160M'].isin([1, 2])]
 
 
 significance_table = []
-data_path  = "../Data/Clustered_Datasets"
+data_path  = "Data/Clustered_Datasets"
 for filename in os.listdir(data_path):
     file_path = os.path.join(data_path, filename)
 
@@ -60,4 +60,4 @@ for filename in os.listdir(data_path):
     significance_table.append(table_row)
 significance_table = pd.DataFrame(significance_table)
 significance_table.to_excel('Significance.xlsx', index=False)
-print('nothing')
+print('finished! yay!')
