@@ -7,14 +7,16 @@ This project aims to:
 
 ## Workflow
 
-#### 1. Clone the github repository
-- git clone `https://github.com/yourusername/yourrepository.git
+#### 1. Open RStudio and clone Github Repository
+- Open the terminal
+- Run `git clone https://github.com/yourusername/yourrepository.git
 cd yourrepository`
 #### 2. Generate Figure 1A (Population Table)
 - Open `Figure1A.Rmd` in RStudio.
 - Click the "Knit" button to generate a PDF/HTML document, or run the code cells sequentially to view the output.
 #### 3. Generate Figure 1B (POP Distributions)
 - Open `Figure1B.Rmd` and run in the same manner as above.
+- If you run into environment issues, you can select the "sessions" tab (top of page), "Restart R Session", and try again.
 #### 4. Generate Figure 2 (Dietary Analysis Stacked Bar Chart)
 - Open and run `Figure2.Rmd`.
 #### 5. Compile Data
@@ -25,5 +27,6 @@ cd yourrepository`
 - Run the script `Create_Dataset_POP_Clusters.R`.
 #### 8. Generate Figure 3B (POP Clusters)
 - Execute `Figure3B.py` to produce the POP clusters visualization.
+- To run a Python script in RStudio, select "Source Script" next to "Run"
 #### 9. Conduct Chi-Square Cluster Analysis
 - Run `Figure3C.py` to perform the chi-square analysis on the clusters.
