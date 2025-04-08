@@ -9,11 +9,11 @@ This project aims to:
 
 #### 1. Open RStudio and clone Github Repository
 - Copy repository web url from main repository page
--Ensure your own computer has github properly set up
--Open R Studios
--Select File->New Project->Version Control->Git
--Past web URL in space provided under "Repository URL"
--Click "Create Project"
+- Ensure your own computer has github properly set up
+- Open R Studios
+- Select File->New Project->Version Control->Git
+- Past web URL in space provided under "Repository URL"
+- Click "Create Project"
 #### 2. Generate Figure 1A (Population Table)
 - Open `Figure1A.Rmd` in RStudio.
 - Click the "Knit" button to generate a PDF/HTML document, or run the code cells sequentially to view the output.
