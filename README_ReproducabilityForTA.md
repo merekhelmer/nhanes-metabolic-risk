@@ -8,9 +8,9 @@ This project aims to:
 ## Workflow
 
 #### 1. Open RStudio and clone Github Repository
+- Copy repository web url from main repository page
 - Open the terminal
-- Run `git clone https://github.com/yourusername/yourrepository.git
-cd yourrepository`
+- Run `git clone https://github.com/merekhelmer/nhanes-metabolic-risk.git`
 #### 2. Generate Figure 1A (Population Table)
 - Open `Figure1A.Rmd` in RStudio.
 - Click the "Knit" button to generate a PDF/HTML document, or run the code cells sequentially to view the output.
