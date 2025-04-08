@@ -14,7 +14,7 @@ This project aims to:
 - Select File->New Project->Version Control->Git
 - Past web URL in space provided under "Repository URL"
 - Click "Create Project"
-- Note: This project requires the tidyverse, haven, stringr, purrr, DT, reticulate, pandas, numpy, sklearn, matplotlib, os, scipy, and openxlsx libraries. The files have code to install most of them, but before running the files it's a good idea to make sure they are installed. The python libraries (reticulate, pandas, numpy, sklearn, matplotlib, os, scipy) can be installed using the command "pip install (insert library name here)" in the terminal. The R libraries (tidyverse, haven, stringr, purrr, DT, openxlsx) can be installed by navigating to the packages tab on the bottom right window, pressing "install", and selecting the appropriate library
+Note: This project requires the tidyverse, haven, stringr, purrr, DT, reticulate, pandas, numpy, sklearn, matplotlib, os, scipy, and openxlsx libraries. The files have code to install most of them, but before running the files it's a good idea to make sure they are installed. The python libraries (reticulate, pandas, numpy, sklearn, matplotlib, os, scipy) can be installed using the command "pip install (insert library name here)" in the terminal. The R libraries (tidyverse, haven, stringr, purrr, DT, openxlsx) can be installed by navigating to the packages tab on the bottom right window, pressing "install", and selecting the appropriate library
 #### 2. Generate Figure 1A (Population Table)
 - Open `Figure1A.Rmd` in RStudio.
 - Click the "Knit" button to generate a PDF/HTML document, or run the code cells sequentially to view the output.
